@@ -16,8 +16,25 @@ class PackageSerializer(serializers.ModelSerializer):
         # Buscar a última versão caso ela não seja especificada pelo usuário.
         # Subir a exceção `serializers.ValidationError()` se o pacote não
         # for válido.
-        return data
-
+        
+        name = data.get('name', '')
+        version = data.get('version', '')
+        
+        if version:
+            exist = version_exists(name, version)        
+            
+            if exist:
+                return data
+            else:
+                raise serializers.ValidationError({"error: "One or more packages doesn't exist"})
+         else:
+             latest = latest_version(name)
+             
+             if latest:
+                data['version'] = latest
+                return data
+             else:
+                raise serializers.ValidationError({"error: "One or more packages doesn't exist"})
 
 class ProjectSerializer(serializers.ModelSerializer):
     class Meta:
